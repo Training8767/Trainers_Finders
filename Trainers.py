@@ -2,6 +2,9 @@ import streamlit as st
 from serpapi import GoogleSearch
 import pandas as pd
 
+# Use SerpAPI key from Streamlit Secrets
+serpapi_key = st.secrets["SERPAPI_KEY"]
+
 # Set colorful page config
 st.set_page_config(
     page_title="🎨 Crazy Colorful Trainer Finder",
@@ -9,7 +12,7 @@ st.set_page_config(
     page_icon="🎯"
 )
 
-# Inject custom CSS for wild styling
+# Inject custom CSS for styling
 st.markdown("""
     <style>
     .main {
@@ -42,9 +45,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Title with Emojis
-st.title("🌈💼 Trainer Finder Tool using SerpAPI 🎯")
-st.subheader("Find professional trainers from LinkedIn using Google Search via SerpAPI")
+# Compact title and subtitle in one line
+st.markdown("""
+    <h1 style='font-size:24px; display: inline-block; margin-right: 10px;'>🌈💼 Trainer Finder Tool</h1>
+    <span style='font-size:18px; color: #333;'>using SerpAPI 🎯</span>
+""", unsafe_allow_html=True)
 
 st.markdown("### ✨ Enter Search Details Below")
 
@@ -53,12 +58,11 @@ with st.form("search_form"):
     domain = st.text_input("📘 Enter Domain (e.g., Python, Java)", "")
     location = st.text_input("📍 Enter Location (e.g., Pune)", "")
     keyword = st.text_input("🧩 Optional Keywords (e.g., freelance, corporate)", "")
-    serpapi_key = st.text_input("🔑 Enter your SerpAPI Key", type="password")
     submitted = st.form_submit_button("🚀 Search Trainers")
 
 if submitted:
-    if not domain or not location or not serpapi_key:
-        st.error("❗ Please enter all required fields including SerpAPI key.")
+    if not domain or not location:
+        st.error("❗ Please enter both domain and location.")
     else:
         with st.spinner("🔍 Searching trainers using SerpAPI..."):
             query = f'site:linkedin.com/in/ "{domain} trainer" AND "{location}" {keyword}'
