@@ -1,0 +1,57 @@
+import streamlit as st
+from serpapi import GoogleSearch
+import pandas as pd
+
+st.set_page_config(page_title="Trainer Finder (SerpAPI)", layout="centered")
+st.title("🔍 Trainer Finder Tool using SerpAPI")
+
+# Input form
+with st.form("search_form"):
+    domain = st.text_input("Enter Domain (e.g., Python, Java)", "")
+    location = st.text_input("Enter Location (e.g., Pune)", "")
+    keyword = st.text_input("Optional Keywords (e.g., freelance, corporate)", "")
+    serpapi_key = st.text_input("Enter your SerpAPI Key (get free key from serpapi.com)", type="password")
+    submitted = st.form_submit_button("Search Trainers")
+
+if submitted:
+    if not domain or not location or not serpapi_key:
+        st.error("Please enter all required fields including SerpAPI key.")
+    else:
+        with st.spinner("Searching trainers using SerpAPI..."):
+            query = f'site:linkedin.com/in/ "{domain} trainer" AND "{location}" {keyword}'
+
+            params = {
+                "engine": "google",
+                "q": query,
+                "api_key": serpapi_key,
+                "num": "50"
+            }
+
+            try:
+                search = GoogleSearch(params)
+                results = search.get_dict()
+
+                profiles = []
+                if "organic_results" in results:
+                    for res in results["organic_results"]:
+                        link = res.get("link", "")
+                        title = res.get("title", "")
+                        snippet = res.get("snippet", "")
+                        if "linkedin.com/in/" in link:
+                            profiles.append({
+                                "Name/Title": title,
+                                "Snippet": snippet,
+                                "LinkedIn URL": link
+                            })
+
+                if profiles:
+                    df = pd.DataFrame(profiles).drop_duplicates(subset=["LinkedIn URL"])
+                    st.success(f"Found {len(df)} trainer profiles!")
+                    st.dataframe(df)
+
+                    csv = df.to_csv(index=False).encode("utf-8")
+                    st.download_button("⬇️ Download CSV", data=csv, file_name="trainers.csv", mime="text/csv")
+                else:
+                    st.warning("No trainer profiles found. Try changing keywords or location.")
+            except Exception as e:
+                st.error(f"Something went wrong: {e}")
